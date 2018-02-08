@@ -30,7 +30,8 @@ entity seg7_controller is
 		i_clk			: in	std_logic;
 		i_arst			: in	std_logic;
 		i_en			: in	std_logic					:= '1';
-		i_chars			: in 	char_array_t(7 downto 0)	:= (others => (others => '0'));
+		i_oe			: in	std_logic					:= '1';
+		i_hex_chars		: in 	hex_chars_t(7 downto 0)		:= (others => (others => '0'));
 		o_lcd_cathode	: out 	std_logic_vector(7 downto 0);
 		o_lcd_anaode	: out 	std_logic_vector(7 downto 0)
 	);
@@ -38,12 +39,20 @@ end seg7_controller;
 
 architecture behavioral of seg7_controller is
 
+	component seg7_encoder
+		port (
+			i_hex_char		: in	std_logic_vector(3 downto 0);	-- hex digit	
+			o_seg7_char		: out	std_logic_vector(7 downto 0)	-- active low
+		);
+	end component;
+
 	signal curr_index	: unsigned(2 downto 0);
 	signal next_index	: unsigned(2 downto 0);
-	
+	signal mux_hex_char	: std_logic_vector(3 downto 0);
+
 begin
 
-	-- index reg
+	-- regs
 	process (i_clk, i_arst) begin
 		if i_arst = '1' then
 			curr_index	<= (others => '0');
@@ -52,17 +61,42 @@ begin
 		end if;
 	end process;
 
-	-- cathode & anaode
+	-- comb
 	process (curr_index) begin
 		
-		
-		if i_en = '1' then
+		mux_hex_char	<= i_hex_chars(to_integer(curr_index));
+
+		-- index switching
+		if i_en	= '1' then			
 			next_index	<= curr_index + 1;
-		else
+		else	
 			next_index	<= curr_index;
 		end if;
 		
-		
+		-- anodes
+		if i_oe = '1' then 
+			-- anode decoder (active low)
+			case(curr_index) is
+				when "000"	=> o_lcd_anaode	<= "1111_1110";  
+				when "001"	=> o_lcd_anaode	<= "1111_1101";
+				when "010"	=> o_lcd_anaode	<= "1111_1011";
+				when "011"	=> o_lcd_anaode	<= "1111_0111";
+				when "100"	=> o_lcd_anaode	<= "1110_1111";
+				when "101"	=> o_lcd_anaode	<= "1101_1111";
+				when "110"	=> o_lcd_anaode	<= "1011_1111";
+				when "111"	=> o_lcd_anaode	<= "0111_1111";
+			end case;
+		else
+			-- turn off displays
+			o_lcd_anaode	<= "1111_1111";
+		end if;
 	end process;
 	
+	-- decoder
+	seg7_encoder: seg7_encoder_inst 
+		port map (
+			i_hex_char		<= mux_hex_char,	
+			o_seg7_char		<= o_lcd_cathode
+		);
+
 end behavioral;

@@ -5,7 +5,7 @@ package lab2_pkg is
 -- subprogram declarations
 
 -- type declarations
-type char_array_t is array (integer range <>) of std_logic_vector(3 downto 0);
+type hex_chars_t is array (integer range <>) of std_logic_vector(3 downto 0);
 
 -- subtype declarations
 
