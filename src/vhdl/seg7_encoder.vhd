@@ -1,3 +1,25 @@
+----------------------------------------------------------------------------------
+-- Company: JHU Masters
+-- Engineer: Raef Youssef
+-- 
+-- Create Date: 02/08/2018 08:05:23 PM
+-- Design Name: 
+-- Module Name: seg7_encoder - behavioral
+-- Project Name:  
+-- Target Devices: 
+-- Tool Versions: 
+-- Description: 
+-- 
+-- Dependencies: 
+-- 
+-- Revision:
+-- Revision 0.01 - File Created
+-- Additional Comments:
+-- 
+----------------------------------------------------------------------------------
+
+
+
 library ieee;
 use ieee.std_logic_1164.all;
 
@@ -13,7 +35,7 @@ begin
 
 	-- Mapping: {DP, CG, CF, CE, CD, CC, CB, CA}
 
-	with i_hex_digit select 
+	with i_hex_char select 
 	o_seg7_char <=
 		"11000000" when x"0" ,
 		"11111001" when x"1" ,

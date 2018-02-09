@@ -30,10 +30,9 @@ entity seg7_controller is
 		i_clk			: in	std_logic;
 		i_arst			: in	std_logic;
 		i_en			: in	std_logic					:= '1';
-		i_oe			: in	std_logic					:= '1';
 		i_hex_chars		: in 	hex_chars_t(7 downto 0)		:= (others => (others => '0'));
-		o_lcd_cathode	: out 	std_logic_vector(7 downto 0);
-		o_lcd_anaode	: out 	std_logic_vector(7 downto 0)
+		o_seg7_cathode	: out 	std_logic_vector(7 downto 0);
+		o_seg7_anaode	: out 	std_logic_vector(7 downto 0)
 	);
 end seg7_controller;
 
@@ -62,41 +61,35 @@ begin
 	end process;
 
 	-- comb
-	process (curr_index) begin
+	process (curr_index, i_hex_chars, i_en) begin
 		
 		mux_hex_char	<= i_hex_chars(to_integer(curr_index));
-
-		-- index switching
-		if i_en	= '1' then			
-			next_index	<= curr_index + 1;
-		else	
-			next_index	<= curr_index;
-		end if;
+		next_index		<= curr_index + 1;
 		
 		-- anodes
-		if i_oe = '1' then 
+		if i_en = '1' then 
 			-- anode decoder (active low)
 			case(curr_index) is
-				when "000"	=> o_lcd_anaode	<= "1111_1110";  
-				when "001"	=> o_lcd_anaode	<= "1111_1101";
-				when "010"	=> o_lcd_anaode	<= "1111_1011";
-				when "011"	=> o_lcd_anaode	<= "1111_0111";
-				when "100"	=> o_lcd_anaode	<= "1110_1111";
-				when "101"	=> o_lcd_anaode	<= "1101_1111";
-				when "110"	=> o_lcd_anaode	<= "1011_1111";
-				when "111"	=> o_lcd_anaode	<= "0111_1111";
+				when "000"	=> o_seg7_anaode	<= "11111110";  
+				when "001"	=> o_seg7_anaode	<= "11111101";
+				when "010"	=> o_seg7_anaode	<= "11111011";
+				when "011"	=> o_seg7_anaode	<= "11110111";
+				when "100"	=> o_seg7_anaode	<= "11101111";
+				when "101"	=> o_seg7_anaode	<= "11011111";
+				when "110"	=> o_seg7_anaode	<= "10111111";
+				when "111"	=> o_seg7_anaode	<= "01111111";
 			end case;
 		else
 			-- turn off displays
-			o_lcd_anaode	<= "1111_1111";
+			o_seg7_anaode	<= "11111111";
 		end if;
 	end process;
 	
 	-- decoder
-	seg7_encoder: seg7_encoder_inst 
+	seg7_encoder_inst: seg7_encoder  
 		port map (
-			i_hex_char		<= mux_hex_char,	
-			o_seg7_char		<= o_lcd_cathode
+			i_hex_char		=> mux_hex_char,	
+			o_seg7_char		=> o_seg7_cathode
 		);
 
 end behavioral;
